@@ -106,7 +106,7 @@ const LoginWrappper = styled.div`
 const SignUp = ({ setActualUser }) => {
   const [email, setEmail] = React.useState("");
   const [userName, setUserName] = React.useState("");
-  const [errors, setErrors] = React.useState(0);
+  const [errors, setErrors] = React.useState(null);
 
   const usersCollectionRef = collection(db, "users");
 
@@ -116,7 +116,9 @@ const SignUp = ({ setActualUser }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createUser();
+    if (errors === 0) {
+      createUser();
+    }
   };
 
   const getUsers = async () => {
@@ -159,8 +161,17 @@ const SignUp = ({ setActualUser }) => {
       const size = input.getAttribute("size");
       switch (input.getAttribute("type")) {
         case "text":
-          setSuccessFor(input);
-          isValid = true;
+          if (minLength && value.length < minLength) {
+            setErrorFor(
+              input,
+              `${input.getAttribute(
+                "placeholder"
+              )} length must be at least ${minLength}`
+            );
+          } else {
+            setSuccessFor(input);
+            isValid = true;
+          }
           break;
         case "password":
           if (minLength && value.length < minLength) {
@@ -258,7 +269,12 @@ const SignUp = ({ setActualUser }) => {
         </div>
         <div className="form-control">
           <small>Error message</small>
-          <input type="text" onChange={userNameChange} placeholder="Nombre" />
+          <input
+            type="text"
+            onChange={userNameChange}
+            placeholder="Nombre"
+            minLength={4}
+          />
           <i class="fas fa-check-circle"></i>
           <i class="fas fa-exclamation-circle"></i>
         </div>

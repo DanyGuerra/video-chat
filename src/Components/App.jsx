@@ -1,14 +1,15 @@
 import SignUp from "./SignUp";
-import ChatRoom from "./ChatRoom";
+import Webinar from "./Webinar";
+
 import { useState } from "react";
 
 function App() {
-  const [actualUser, setActualUser] = useState("");
+  const [actualUser, setActualUser] = useState("Daniel");
 
   return (
     <>
       {actualUser ? (
-        <ChatRoom actualUser={actualUser}></ChatRoom>
+        <Webinar actualUser={actualUser}></Webinar>
       ) : (
         <SignUp setActualUser={setActualUser}></SignUp>
       )}
