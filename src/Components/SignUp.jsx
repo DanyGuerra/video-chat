@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { db } from "../firebase.config";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 
@@ -61,6 +61,15 @@ const LoginWrappper = styled.div`
         background-color: #0c6dce;
         color: white;
       }
+      :disabled,
+      [disabled] {
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+        :hover {
+          cursor: wait;
+        }
+      }
     }
 
     .form-control.error {
@@ -103,135 +112,65 @@ const LoginWrappper = styled.div`
   }
 `;
 
+const inputsInitial = [
+  {
+    name: "email",
+    type: "email",
+    placeholder: "Correo electronico",
+    validation: null,
+    value: "",
+  },
+  {
+    name: "nombre",
+    type: "text",
+    placeholder: "Nombre",
+    validation: null,
+    value: "",
+    minLength: 4,
+  },
+];
+
 const SignUp = ({ setActualUser }) => {
-  const [email, setEmail] = React.useState("");
-  const [userName, setUserName] = React.useState("");
-  const [errors, setErrors] = React.useState(null);
+  const [inputs, setInputs] = React.useState([]);
 
   const usersCollectionRef = collection(db, "users");
+  let buttonSignUp = useRef(null);
 
   useEffect(() => {
     getUsers();
+    setInputs(inputsInitial);
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (errors === 0) {
+    buttonSignUp.current.disabled = true;
+    allValidation();
+    const validation = checkValidation();
+    if (validation.every((el) => el == true)) {
+      console.log("Validacion correcta");
       createUser();
+    } else {
+      console.log("Validacion incorrecta");
     }
+    buttonSignUp.current.disabled = false;
   };
 
   const getUsers = async () => {
     const data = await getDocs(usersCollectionRef);
-    console.log(data.docs.map((doc) => ({ ...doc.data() })));
   };
 
   const createUser = async () => {
     try {
       const userCreate = await addDoc(usersCollectionRef, {
-        username: userName,
-        email: email,
+        username: inputs[0].value,
+        email: inputs[1].value,
       });
-      setActualUser(userName);
+      setActualUser(inputs[1].value);
+      buttonSignUp.current.disabled = false;
     } catch (error) {
       console.error(error);
     }
   };
-
-  const mailChange = (e) => {
-    setEmail(e.target.value);
-    inputValidation(e);
-  };
-
-  const userNameChange = (e) => {
-    setUserName(e.target.value);
-    inputValidation(e);
-  };
-
-  function inputValidation(e) {
-    const input = e.target;
-    const value = e.target.value;
-    let isValid = false;
-
-    if (value === "" || null) {
-      setErrorFor(input, `${input.getAttribute("placeholder")} is required`);
-    } else {
-      const minLength = input.getAttribute("minlength");
-      const maxLength = input.getAttribute("maxLength");
-      const size = input.getAttribute("size");
-      switch (input.getAttribute("type")) {
-        case "text":
-          if (minLength && value.length < minLength) {
-            setErrorFor(
-              input,
-              `${input.getAttribute(
-                "placeholder"
-              )} length must be at least ${minLength}`
-            );
-          } else {
-            setSuccessFor(input);
-            isValid = true;
-          }
-          break;
-        case "password":
-          if (minLength && value.length < minLength) {
-            setErrorFor(
-              input,
-              `${input.getAttribute(
-                "placeholder"
-              )} length must be at least ${minLength}`
-            );
-          } else if (size && value.length != Number(size)) {
-            setErrorFor(
-              input,
-              `${input.getAttribute("placeholder")} length must be ${size}`
-            );
-          } else {
-            setSuccessFor(input);
-            isValid = true;
-          }
-          break;
-        case "tel":
-          if (!isNumberValid(value)) {
-            setErrorFor(
-              input,
-              `${input.getAttribute("placeholder")} must be a number`
-            );
-          } else if (minLength && value.length < minLength) {
-            setErrorFor(
-              input,
-              `${input.getAttribute(
-                "placeholder"
-              )} length must be at least ${minLength}`
-            );
-          } else if (size && value.length != Number(size)) {
-            setErrorFor(
-              input,
-              `${input.getAttribute("placeholder")} length must be ${size}`
-            );
-          } else {
-            setSuccessFor(input);
-            isValid = true;
-          }
-          break;
-        case "email":
-          if (!isEmail(value)) {
-            setErrorFor(
-              input,
-              `${input.getAttribute("placeholder")} is not valid`
-            );
-          } else {
-            setSuccessFor(input);
-            isValid = true;
-          }
-          break;
-        default:
-          break;
-      }
-    }
-
-    return isValid;
-  }
 
   function isEmail(email) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
@@ -244,41 +183,90 @@ const SignUp = ({ setActualUser }) => {
     return regex.test(number);
   }
 
-  function setErrorFor(input, message) {
-    const formControl = input.parentElement;
-    const small = formControl.querySelector("small");
-    formControl.className = "form-control error";
-    small.innerText = message;
-  }
+  const inputChange = (e) => {
+    const nameInput = e.target.name;
+    const resultado = inputs.map((input) => {
+      if (input.name === nameInput) {
+        input.value = e.target.value;
+        input = oneValidation(input);
+      }
+      return input;
+    });
 
-  function setSuccessFor(input) {
-    const formControl = input.parentElement;
-    console.log(formControl);
-    formControl.className = "form-control success";
-  }
+    setInputs(resultado);
+  };
+
+  const checkValidation = () => {
+    return inputs.map((input) => {
+      return input.validation;
+    });
+  };
+
+  const allValidation = () => {
+    const resultado = inputs.map((input) => {
+      input = oneValidation(input);
+      return input;
+    });
+
+    setInputs(resultado);
+  };
+
+  const oneValidation = (input) => {
+    const value = input.value;
+    if (!value) {
+      input.validation = false;
+    } else if (value.length < input.minLength) {
+      input.validation = false;
+    } else {
+      switch (input.type) {
+        case "text":
+          input.validation = true;
+          break;
+        case "email":
+          if (!isEmail(value)) {
+            input.validation = false;
+          } else {
+            input.validation = true;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    return input;
+  };
 
   return (
     <LoginWrappper>
       <form id="signup-form">
         <h1 className="title">Registrate</h1>
-        <div className="form-control">
-          <small>Error message</small>
-          <input type="email" onChange={mailChange} placeholder="Correo" />
-          <i class="fas fa-check-circle"></i>
-          <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <div className="form-control">
-          <small>Error message</small>
-          <input
-            type="text"
-            onChange={userNameChange}
-            placeholder="Nombre"
-            minLength={4}
-          />
-          <i class="fas fa-check-circle"></i>
-          <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <button type="submit" onClick={handleSubmit}>
+
+        {inputs.map((input, index) => (
+          <div
+            className={(() => {
+              if (input.validation === true) {
+                return "form-control success";
+              } else if (input.validation === false || null) {
+                return "form-control error";
+              } else {
+                return "form-control";
+              }
+            })()}
+            key={index}
+          >
+            <small>Error message</small>
+            <input
+              name={input.name}
+              type={input.type}
+              onChange={inputChange}
+              placeholder={input.placeholder}
+            />
+            <i className="fas fa-check-circle"></i>
+            <i className="fas fa-exclamation-circle"></i>
+          </div>
+        ))}
+
+        <button type="submit" onClick={handleSubmit} ref={buttonSignUp}>
           Registrarse
         </button>
       </form>
