@@ -114,23 +114,39 @@ const LoginWrappper = styled.div`
 
 const inputsInitial = [
   {
-    name: "email",
-    type: "email",
-    placeholder: "Correo electronico",
-    validation: null,
-    value: "",
-  },
-  {
     name: "nombre",
     type: "text",
-    placeholder: "Nombre",
+    placeholder: "NOMBRE",
     validation: null,
     value: "",
     minLength: 4,
   },
+  {
+    name: "email",
+    type: "email",
+    placeholder: "CORREO ELECTRÓNICO",
+    validation: null,
+    value: "",
+  },
+  {
+    name: "whatsapp",
+    type: "tel",
+    placeholder: "WHATSAPP",
+    validation: null,
+    value: "",
+    size: 10,
+    maxLength: 10,
+  },
+  {
+    name: "empresa",
+    type: "text",
+    placeholder: "EMPRESA",
+    validation: null,
+    value: "",
+  },
 ];
 
-const SignUp = ({ setActualUser }) => {
+const SignUp = ({ setActualUser, setActualMail }) => {
   const [inputs, setInputs] = React.useState([]);
 
   const usersCollectionRef = collection(db, "users");
@@ -164,8 +180,11 @@ const SignUp = ({ setActualUser }) => {
       const userCreate = await addDoc(usersCollectionRef, {
         username: inputs[0].value,
         email: inputs[1].value,
+        whatsapp: inputs[2].value,
+        empresa: inputs[3].value,
       });
-      setActualUser(inputs[1].value);
+      setActualUser(inputs[0].value);
+      setActualMail(inputs[1].value);
       buttonSignUp.current.disabled = false;
     } catch (error) {
       console.error(error);
@@ -217,6 +236,8 @@ const SignUp = ({ setActualUser }) => {
       input.validation = false;
     } else if (value.length < input.minLength) {
       input.validation = false;
+    } else if (input.size && value.length != input.size) {
+      input.validation = false;
     } else {
       switch (input.type) {
         case "text":
@@ -224,6 +245,13 @@ const SignUp = ({ setActualUser }) => {
           break;
         case "email":
           if (!isEmail(value)) {
+            input.validation = false;
+          } else {
+            input.validation = true;
+          }
+          break;
+        case "tel":
+          if (!isNumberValid(value)) {
             input.validation = false;
           } else {
             input.validation = true;
@@ -259,7 +287,10 @@ const SignUp = ({ setActualUser }) => {
               name={input.name}
               type={input.type}
               onChange={inputChange}
+              onBlur={inputChange}
               placeholder={input.placeholder}
+              size={input.size}
+              maxLength={input.maxLength}
             />
             <i className="fas fa-check-circle"></i>
             <i className="fas fa-exclamation-circle"></i>

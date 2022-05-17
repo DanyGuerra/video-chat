@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import { db } from "../firebase.config";
 import {
   addDoc,
   collection,
-  getDocs,
   query,
   orderBy,
-  limit,
-  get,
   onSnapshot,
+  where,
 } from "firebase/firestore";
 
 const WebinarWrapper = styled.div`
@@ -96,14 +94,16 @@ const ChatWrapper = styled.div`
   }
 `;
 
-const Webinar = ({ actualUser }) => {
+const Webinar = ({ actualUser, actualMail }) => {
   const initialMessage = {
     message: "",
     videoTime: 0,
     user: actualUser,
+    email: actualMail,
   };
   const [actualMessage, setMessage] = React.useState(initialMessage);
   const [messages, setMessages] = React.useState([]);
+  const [currentSecond, setCurrentSecond] = React.useState(0);
 
   const usersCollectionRef = collection(db, "messages");
 
@@ -112,17 +112,31 @@ const Webinar = ({ actualUser }) => {
   let video = useRef(null);
 
   useEffect(() => {
-    getMessages();
+    const interval = setInterval(() => {
+      console.log("hi");
+      setCurrentSecond(Number(video.current.currentTime.toFixed(2)));
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
-  const getMessages = async () => {
-    const q = await query(usersCollectionRef, orderBy("videoTime"));
+  useEffect(() => {
+    const getMessages = async () => {
+      const q = await query(
+        usersCollectionRef,
+        where("videoTime", "<=", currentSecond)
+      );
 
-    const unsub = onSnapshot(q, (snapshot) => {
-      const allMessages = snapshot.docs.map((doc) => ({ ...doc.data() }));
-      setMessages(allMessages);
-    });
-  };
+      onSnapshot(q, (snapshot) => {
+        const allMessages = snapshot.docs.map((doc) => ({ ...doc.data() }));
+        setMessages(allMessages);
+      });
+    };
+
+    getMessages();
+  }, [currentSecond]);
 
   const sendMessage = async () => {
     try {
@@ -149,7 +163,6 @@ const Webinar = ({ actualUser }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     sendMessage();
-    getMessages();
   };
 
   const messageChange = (e) => {
@@ -164,6 +177,10 @@ const Webinar = ({ actualUser }) => {
     return (s - (s %= 60)) / 60 + (9 < s ? ":" : ":0") + s;
   };
 
+  const handleVideoPlay = (e) => {
+    console.log(e.target.currentTime);
+  };
+
   return (
     <WebinarWrapper>
       <video
@@ -171,8 +188,9 @@ const Webinar = ({ actualUser }) => {
         id="video"
         width="100%"
         no-controls="true"
-        autoPlay={"autoPlay"}
         muted
+        autoPlay={"autoPlay"}
+        onChange={handleVideoPlay}
       >
         <source
           src="https://firebasestorage.googleapis.com/v0/b/video-chat-e6b0e.appspot.com/o/example-video.mp4?alt=media&token=e07711ac-74b2-4311-83eb-0802ce084888"
