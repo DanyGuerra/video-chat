@@ -2,115 +2,7 @@ import styled from "styled-components";
 import React, { useEffect, useRef } from "react";
 import { db } from "../firebase.config";
 import { addDoc, collection, getDocs } from "firebase/firestore";
-
-const LoginWrappper = styled.div`
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: "Roboto", sans-serif;
-  box-sizing: border-box;
-
-  form {
-    padding-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 297px;
-    height: 263px;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.15);
-    padding: 20px 0px 39px 0px;
-
-    h1 {
-      font-weight: 700;
-      font-size: 20px;
-      font-style: normal;
-      line-height: 23px;
-      margin-bottom: 30px;
-    }
-    button,
-    input {
-      width: 212px;
-      height: 35px;
-      font-weight: 400;
-      font-family: "Roboto", sans-serif;
-      font-size: 15px;
-    }
-
-    input {
-      background: rgba(196, 196, 196, 0.15);
-      border: 1px solid #a9a9a9;
-      border-radius: 0px;
-      margin-bottom: 25px;
-      font-family: "Roboto", sans-serif;
-    }
-
-    button {
-      height: 35px;
-      border: 1px solid #0c6dce;
-      box-sizing: border-box;
-      background: #ffffff;
-      font-style: normal;
-      font-weight: 700;
-      font-size: 15px;
-      color: #0c6dce;
-      :hover {
-        cursor: pointer;
-        background-color: #0c6dce;
-        color: white;
-      }
-      :disabled,
-      [disabled] {
-        border: 1px solid #999999;
-        background-color: #cccccc;
-        color: #666666;
-        :hover {
-          cursor: wait;
-        }
-      }
-    }
-
-    .form-control.error {
-      input {
-        border: 2px red solid;
-      }
-      i.fa-exclamation-circle {
-        visibility: visible;
-      }
-    }
-    .form-control.success {
-      input {
-        border: 2px green solid;
-      }
-      i.fa-check-circle {
-        visibility: visible;
-      }
-    }
-
-    .form-control {
-      position: relative;
-      small {
-        position: absolute;
-        bottom: 10px;
-        visibility: hidden;
-      }
-      i {
-        position: absolute;
-        top: 10px;
-        right: 5px;
-        visibility: hidden;
-      }
-      .fa-check-circle {
-        color: green;
-      }
-      .fa-exclamation-circle {
-        color: red;
-      }
-    }
-  }
-`;
+import "../styles/SignUp.css";
 
 const inputsInitial = [
   {
@@ -162,7 +54,7 @@ const SignUp = ({ setActualUser, setActualMail }) => {
     buttonSignUp.current.disabled = true;
     allValidation();
     const validation = checkValidation();
-    if (validation.every((el) => el == true)) {
+    if (validation.every((el) => el === true)) {
       console.log("Validacion correcta");
       createUser();
     } else {
@@ -172,17 +64,18 @@ const SignUp = ({ setActualUser, setActualMail }) => {
   };
 
   const getUsers = async () => {
-    const data = await getDocs(usersCollectionRef);
+    await getDocs(usersCollectionRef);
   };
 
   const createUser = async () => {
     try {
-      const userCreate = await addDoc(usersCollectionRef, {
+      await addDoc(usersCollectionRef, {
         username: inputs[0].value,
         email: inputs[1].value,
         whatsapp: inputs[2].value,
         empresa: inputs[3].value,
       });
+      // sendUserToSpread();
       setActualUser(inputs[0].value);
       setActualMail(inputs[1].value);
       buttonSignUp.current.disabled = false;
@@ -236,7 +129,7 @@ const SignUp = ({ setActualUser, setActualMail }) => {
       input.validation = false;
     } else if (value.length < input.minLength) {
       input.validation = false;
-    } else if (input.size && value.length != input.size) {
+    } else if (input.size && value.length !== input.size) {
       input.validation = false;
     } else {
       switch (input.type) {
@@ -265,44 +158,121 @@ const SignUp = ({ setActualUser, setActualMail }) => {
   };
 
   return (
-    <LoginWrappper>
-      <form id="signup-form">
-        <h1 className="title">Registrate</h1>
+    <>
+      <div class="mancha hidden-mobile show-desktop">
+        <img src="./assets/mancha.svg" alt="Logo" />
+      </div>
 
-        {inputs.map((input, index) => (
-          <div
-            className={(() => {
-              if (input.validation === true) {
-                return "form-control success";
-              } else if (input.validation === false || null) {
-                return "form-control error";
-              } else {
-                return "form-control";
-              }
-            })()}
-            key={index}
-          >
-            <small>Error message</small>
-            <input
-              name={input.name}
-              type={input.type}
-              onChange={inputChange}
-              onBlur={inputChange}
-              placeholder={input.placeholder}
-              size={input.size}
-              maxLength={input.maxLength}
-            />
-            <i className="fas fa-check-circle"></i>
-            <i className="fas fa-exclamation-circle"></i>
+      <main>
+        <section class="main-section">
+          <div class="left-message">
+            <div class="logo-header show-desktop hidden-mobile">
+              <img
+                src="./assets/logo-sensepath.svg"
+                alt="Sense Path logo"
+                width="252px"
+              />
+            </div>
+            <h1>
+              INTRODUCCIÓN A LA <b>EVALUACIÓN SENSORIAL</b> EBOOK GRATUITO
+            </h1>
+
+            <p class="show-desktop hidden-mobile">
+              Regístrate para descargar un exclusivo Ebook sobre como la
+              evaluación sensorial puede ayudar a tu producto. Descubre los
+              atributos personales, lo que opinan tus clientes o futuros
+              compradores, como diferenciarte de tu compentencia y mucho más.{" "}
+            </p>
+            <p class="hidden-desktop show-mobile">
+              Regístrate para descargar un exclusivo Ebook sobre como la
+              evaluación sensorial puede ayudar a tu producto.
+            </p>
           </div>
-        ))}
+          <div class="formulario">
+            <form action="" method="post" id="form">
+              {inputs.map((input, index) => (
+                <div
+                  className={(() => {
+                    if (input.validation === true) {
+                      return "form-control success";
+                    } else if (input.validation === false || null) {
+                      return "form-control error";
+                    } else {
+                      return "form-control";
+                    }
+                  })()}
+                  key={index}
+                >
+                  <small>Error message</small>
+                  <input
+                    name={input.name}
+                    type={input.type}
+                    onChange={inputChange}
+                    onBlur={inputChange}
+                    placeholder={input.placeholder}
+                    size={input.size}
+                    maxLength={input.maxLength}
+                  />
+                  <i className="fas fa-check-circle"></i>
+                  <i className="fas fa-exclamation-circle"></i>
+                </div>
+              ))}
 
-        <button type="submit" onClick={handleSubmit} ref={buttonSignUp}>
-          Registrarse
-        </button>
-      </form>
-    </LoginWrappper>
+              <button type="submit" onClick={handleSubmit} ref={buttonSignUp}>
+                Registrarse
+              </button>
+            </form>
+          </div>
+          <div class="logo-main hidden-desktop">
+            <img
+              src="./assets/logo-sensepath.svg"
+              alt="Sense Path logo"
+              width="252px"
+            />
+          </div>
+          <p class="hidden-desktop show-mobile">
+            Descubre los atributos personales, lo que opinan tus clientes o
+            futuros compradores, como diferenciarte de tu compentencia y mucho
+            más.{" "}
+          </p>
+        </section>
+      </main>
+      <footer>
+        <div class="banner">
+          <div class="banner-text">
+            <h1>
+              ESTRATEGÍA SENSORIAL APLICADA A TU MARCA{" "}
+              <b>SOMOS LA EMPRESA MEXICANA</b> DE MÁS ALTO EXPERTISE SENSORIAL
+            </h1>
+            <a href="https://www.sense-path.com/#topFooter" target="_blank">
+              <button class="secondary-button">CONTÁCTANOS</button>
+            </a>
+          </div>
+          <img
+            class="show-desktop hidden-mobile"
+            src="./assets/expertise.png"
+            alt=""
+          />
+        </div>
+        <div class="aviso-privacidad">
+          <a
+            href="https://www.sense-path.com/SP-AvisoPrivacidad.pdf"
+            target="_blank"
+          >
+            AVISO DE PRIVACIDAD{" "}
+          </a>
+        </div>
+      </footer>
+    </>
   );
 };
 
 export default SignUp;
+
+{
+  /* <form>
+      <h1>Registrate</h1>
+
+
+    </form> */
+}
